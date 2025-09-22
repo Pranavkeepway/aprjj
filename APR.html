@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APR Calculator - Jalgaon Janata Sahakari Bank Ltd</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .header {
+            background-color: #001F3F; /* Dark blue */
+            color: white;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header .logo {
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        .header .logo img {
+            height: 30px;
+            margin-right: 10px;
+        }
+        .header .menu-icon {
+            font-size: 24px;
+        }
+        .header .icons {
+            display: flex;
+            gap: 10px;
+        }
+        .container {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .button {
+            background-color: #001F3F; /* Dark blue */
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f4fd;
+            border: 1px solid #b3d9f2;
+            border-radius: 4px;
+            display: none;
+        }
+        .notes {
+            font-size: 12px;
+            color: #666;
+            margin-top: 20px;
+        }
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            margin-top: 20px;
+        }
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            .header {
+                padding: 5px;
+            }
+            .header .logo img {
+                height: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <span class="menu-icon">APR</span>
+        <div class="logo">
+            <img src="https://play-lh.googleusercontent.com/fsA6aFHhtHU-4KcRKCTzO1S8UDjXbKXcFXZCaugkKoeq-_BioEHioeLTPpuyUSJ5hRE=w240-h480-rw" alt="JJS Bank Logo">
+            Jalgaon Janata Sahakari Bank Ltd
+        </div>
+        <div class="icons">
+            <!-- <span>English &#9660;</span>
+            <span>&#128222;</span>
+            <span>&#128276;</span>
+            <span>&#128100;</span> -->
+        </div>
+    </div>
+    <div class="container">
+        <h1>APR Calculator</h1>
+        <p>The Annual Percentage Rate (APR) is a method to compute annualised credit cost, which includes interest rate and loan origination charges.</p>
+        
+        <div class="input-group">
+            <label>Loan Amount (₹)</label>
+            <input type="number" id="loanAmount" value="6000" min="6000" max="150000000">
+        </div>
+        
+        <div class="input-group">
+            <label>Tenure (Month)</label>
+            <input type="number" id="tenure" value="12" min="12" max="240">
+        </div>
+        
+        <div class="input-group">
+            <label>ROI (%)</label>
+            <input type="number" id="roi" value="8" min="8" max="26" step="0.01">
+        </div>
+        
+        <div class="input-group">
+            <label>Loan origination charges (₹)</label>
+            <input type="number" id="charges" value="0" min="0" max="5000000">
+        </div>
+        
+        <div class="button" onclick="calculateAPR()">CALCULATE NOW</div>
+        
+        <div class="result" id="result">
+            <h2>Calculated APR: <span id="aprValue"></span>%</h2>
+        </div>
+        
+        <div class="notes">
+            Notes on how to use the Calculator (EMI Based Loan Products).
+        </div>
+    </div>
+    <div class="footer">
+        &#128274; jjsbank.com
+    </div>
+
+    <script>
+        function calculateEMI(loanAmount, annualRate, tenureMonths) {
+            const monthlyRate = annualRate / 12 / 100;
+            if (monthlyRate === 0) return loanAmount / tenureMonths;
+            const pow = Math.pow(1 + monthlyRate, tenureMonths);
+            return loanAmount * monthlyRate * pow / (pow - 1);
+        }
+
+        function calculatePV(emi, monthlyRate, tenureMonths) {
+            if (monthlyRate === 0) return emi * tenureMonths;
+            const pow = Math.pow(1 + monthlyRate, tenureMonths);
+            return emi * (1 - 1 / pow) / monthlyRate;
+        }
+
+        function solveForMonthlyRate(emi, netAmount, tenureMonths, tolerance = 1e-6, maxIter = 1000) {
+            let low = 0.000001; // Avoid division by zero
+            let high = 1;
+            let iter = 0;
+            while (iter < maxIter) {
+                const mid = (low + high) / 2;
+                const pv = calculatePV(emi, mid, tenureMonths);
+                if (Math.abs(pv - netAmount) < tolerance) {
+                    return mid;
+                } else if (pv > netAmount) {
+                    low = mid;
+                } else {
+                    high = mid;
+                }
+                iter++;
+            }
+            return (low + high) / 2;
+        }
+
+        function calculateAPR() {
+            const loanAmount = parseFloat(document.getElementById('loanAmount').value);
+            const tenure = parseInt(document.getElementById('tenure').value);
+            const roi = parseFloat(document.getElementById('roi').value);
+            const charges = parseFloat(document.getElementById('charges').value);
+
+            if (isNaN(loanAmount) || isNaN(tenure) || isNaN(roi) || isNaN(charges)) {
+                alert('Please enter valid numbers in all fields.');
+                return;
+            }
+
+            const netAmount = loanAmount - charges;
+            const emi = calculateEMI(loanAmount, roi, tenure);
+            const monthlyRate = solveForMonthlyRate(emi, netAmount, tenure);
+            const apr = (monthlyRate * 12 * 100).toFixed(2);
+
+            document.getElementById('aprValue').textContent = apr;
+            document.getElementById('result').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
